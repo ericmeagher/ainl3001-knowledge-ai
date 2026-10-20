@@ -70,12 +70,11 @@ constraints = [
 
 def is_valid_assignment(assignment):
     """Return True if a complete OR partial assignment is valid."""
-    # TODO:
-    # 1. Loop over neighbouring pairs in constraints.
-    # 2. If BOTH regions have been assigned, compare their colours.
-    # 3. Return False if neighbouring regions have the same colour.
-    # 4. Otherwise return True.
-    pass
+    for region1, region2 in constraints:
+        if region1 in assignment and region2 in assignment:
+            if assignment[region1] == assignment[region2]:
+                return False
+    return True
 
 
 # --------------------------------------------------
@@ -91,15 +90,26 @@ def select_unassigned_variable(assignment):
     choose the unassigned region with the FEWEST currently legal
     colours. Break ties by keeping the first region in variables.
     """
-    # TASK 3 TODO:
-    # Return the first variable not in assignment, or None if all
-    # variables have been assigned.
-    #
-    # TASK 5 TODO (after backtracking works):
-    # For each unassigned variable, temporarily try each colour,
-    # check is_valid_assignment(), and undo the temporary assignment.
-    # Count legal colours and choose the variable with the fewest.
-    pass
+    
+    best_variable = None
+    fewest_legal_colours = float("inf")
+    
+    for variable in variables:
+        if variable in assignment:
+                continue
+    
+        legal_colours = 0
+        for colour in domains[variable]:
+            assignment[variable] = colour
+            if is_valid_assignment(assignment):
+                legal_colours += 1
+            del assignment[variable]
+    
+        if legal_colours < fewest_legal_colours:
+            fewest_legal_colours = legal_colours
+            best_variable = variable
+    
+    return best_variable
 
 
 # --------------------------------------------------
@@ -108,15 +118,22 @@ def select_unassigned_variable(assignment):
 
 def backtracking_search(assignment):
     """Return a complete valid assignment, or None if none exists."""
-    # TODO:
-    # 1. If every variable has been assigned, return a COPY.
-    # 2. Choose a variable with select_unassigned_variable().
-    # 3. For each colour in its domain, temporarily assign it.
-    # 4. If the partial assignment is valid, search recursively.
-    # 5. Return the recursive result if a solution was found.
-    # 6. Otherwise remove the temporary assignment (backtrack).
-    # 7. Return None if every colour fails.
-    pass
+    if len(assignment) == len(variables):
+            return assignment.copy() if is_valid_assignment(assignment) else None
+    
+    variable = select_unassigned_variable(assignment)
+    
+    for colour in domains[variable]:
+        assignment[variable] = colour
+    
+        if is_valid_assignment(assignment):
+            result = backtracking_search(assignment)
+            if result is not None:
+                return result
+    
+        del assignment[variable]
+    
+    return None
 
 
 # --------------------------------------------------
@@ -124,7 +141,8 @@ def backtracking_search(assignment):
 # --------------------------------------------------
 
 # Six regions with three possible colours each give 3 ** 6 = 729
-# complete assignments. Why can backtracking avoid checking all 729?
+# complete assignments. Backtracking rejects invalid partial
+# assignments, so it need not inspect all 729 complete assignments.
 
 
 # --------------------------------------------------
@@ -161,7 +179,11 @@ if __name__ == "__main__":
 
     print("\nPossible complete assignments:", 3 ** len(variables))
     print("\nReflection:")
-    print("1. What causes backtracking?")
-    print("2. Why can backtracking be faster than brute force?")
-    print("3. Why might MRV reduce search?")
-    print("4. How could this model represent timetabling?")
+    print("Q1. What causes backtracking?")
+    print("A: A region has no colour left that works, so we go back and change an earlier colour.")
+    print("\nQ2. Why can backtracking be faster than brute force?")
+    print("A: Brute force checks all 729 colourings. Backtracking stops as soon as two neighbours clash, so it skips lots of bad options.")
+    print("\nQ3. Why might MRV reduce search?")
+    print("A: It colours the hardest region first, so problems show up early.")
+    print("\nQ4. How could this model represent timetabling?")
+    print("A: Lectures are the variables, rooms and times are the values, and the rules are things like 'two lectures can't be in the same room at the same time.'")
